@@ -1156,7 +1156,9 @@
   reveals.forEach(el => observer.observe(el));
 
   // Order handler
-  function handleOrder() {
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx2kewwvdRqdjCrhm0tECPk9J4FBtZVS2Ek4ZyomoncRYmBeyPoslNI944hgpYwFizr/exec';
+
+  async function handleOrder() {
     const inputs = document.querySelectorAll('.order-form input');
     let valid = true;
     inputs.forEach(input => {
@@ -1167,12 +1169,30 @@
         input.style.borderColor = 'rgba(0,245,255,0.5)';
       }
     });
+    if (!valid) return;
 
-    if (valid) {
-      const btn = document.querySelector('.btn-order');
+    const [name, phone, address] = [...inputs].map(i => i.value.trim());
+    const btn = document.querySelector('.btn-order');
+    btn.textContent = '⏳ Відправляємо...';
+    btn.disabled = true;
+
+    try {
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, phone, address })
+      });
+
       btn.textContent = '✓ Замовлення прийнято!';
       btn.style.background = 'linear-gradient(135deg, #00c864, #007a3d)';
       btn.style.boxShadow = '0 0 20px rgba(0,200,100,0.4)';
+      inputs.forEach(i => i.value = '');
+    } catch (e) {
+      btn.textContent = '❌ Помилка — спробуй ще раз';
+      btn.style.background = 'linear-gradient(135deg, #ff006e, #aa0044)';
+      btn.disabled = false;
+      console.error(e);
     }
   }
 </script>
